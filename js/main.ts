@@ -34,10 +34,26 @@ class Scene {
 }
 
 class CelestialBody {
+    public mass: number;
+    public radius: number;
+    public pos: [number, number];
+
+    constructor(mass: number, radius: number, pos: [number, number]) {
+        this.mass = mass;
+        this.radius = radius;
+        this.pos = pos;
+    }
 
 }
 
 class CSM {
+    public mass: number;
+    public pos: [number, number];
+
+    constructor(mass: number, pos: [number, number]) {
+        this.mass = mass;
+        this.pos = pos;
+    }
 
 }
 
