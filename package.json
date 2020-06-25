@@ -1,0 +1,32 @@
+{
+  "name": "trans-lunar-injection",
+  "version": "0.1.0",
+  "description": "",
+  "browser": "./src/ts/index.ts",
+  "private": true,
+  "scripts": {
+    "clean": "rm -f dist/*.*",
+    "compile": "npm run compile:ts && npm run compile:sass",
+    "compile:ts": "tsc --project tsconfig.json",
+    "compile:sass": "sass src/scss:dist",
+    "watch": "npm run watch:ts & npm run watch:sass",
+    "watch:ts": "tsc --project tsconfig.watch.json",
+    "watch:sass": "sass --watch src/scss:dist",
+    "serve": "npm run watch & live-server --ignore=./src,./node_modules"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/brossetti/trans-lunar-injection.git"
+  },
+  "author": "Blair Rossetti and Frank DiFrancesco",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/brossetti/trans-lunar-injection/issues"
+  },
+  "homepage": "https://github.com/brossetti/trans-lunar-injection#readme",
+  "devDependencies": {
+    "live-server": "^1.2.1",
+    "sass": "^1.26.9",
+    "typescript": "^3.9.5"
+  }
+}

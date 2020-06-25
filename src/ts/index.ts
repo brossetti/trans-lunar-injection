@@ -5,7 +5,7 @@ interface SceneObject {
 class Scene {
     private canvas: HTMLCanvasElement;
     private ctx: CanvasRenderingContext2D;
-    private objects: Array<SceneObject>;
+    // private objects: Array<SceneObject>;
 
     constructor(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) {
         this.canvas = canvas;
@@ -70,7 +70,7 @@ function main() {
     const canvas = <HTMLCanvasElement> document.getElementById('space');
 
     if (canvas.getContext) {
-        let ctx = canvas.getContext('2d');
+        let ctx = <CanvasRenderingContext2D> canvas.getContext('2d');
 
         // build initial scene
         // TODO: define the initial elements of the scene
@@ -81,7 +81,6 @@ function main() {
         window.addEventListener('orientationchange', function(){resizeCanvas(scene)}, false)
         resizeCanvas(scene);
     }
-
 }
 
 // start main function
