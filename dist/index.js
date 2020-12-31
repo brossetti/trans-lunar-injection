@@ -1,41 +1,64 @@
 "use strict";
+class SceneObject {
+    constructor(pos, visible = true) {
+        this.pos = pos;
+        this.visible = visible;
+    }
+    setVisibility(b) {
+        this.visible = b;
+    }
+    isVisible() {
+        return this.visible;
+    }
+}
+class CelestialBody extends SceneObject {
+    constructor(pos, mass, radius) {
+        super(pos);
+        this.mass = mass;
+        this.radius = radius;
+    }
+}
+class CSM extends SceneObject {
+    constructor(pos, mass) {
+        super(pos);
+        this.mass = mass;
+    }
+}
 class Scene {
-    // private objects: Array<SceneObject>;
     constructor(canvas, ctx) {
         this.canvas = canvas;
         this.ctx = ctx;
+        this.sceneObjects = [];
     }
     addSceneObject(obj) {
-        // TODO: add scene object to list
+        this.sceneObjects.push(obj);
     }
-    resize(width, height) {
-        this.canvas.width = width;
-        this.canvas.height = height;
+    removeSceneObject(idx) {
+        this.sceneObjects.splice(idx, 1);
+    }
+    resize() {
+        // update canvas
+        this.canvas.width = window.innerWidth;
+        this.canvas.height = window.innerHeight;
+        // update scene object coordinates
         // TODO: update coordinates for all scene objects based on new width and height
+        // redraw
+        this.draw();
     }
     draw() {
+        // clear canvas
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         // TODO: draw every SceneObject in object list to canvas
+        // for (let obj of this.sceneObjects) {
+        //     if (obj.isVisible()) {
+        //     }
+        // }
         this.ctx.fillStyle = 'green';
-        this.ctx.fillRect(10, 10, 150, 100);
+        this.ctx.fillRect(this.canvas.width / 2 + (Math.random() * 10), this.canvas.height / 2 + (Math.random() * 10), 150, 100);
     }
 }
-class CelestialBody {
-    constructor(mass, radius, pos) {
-        this.mass = mass;
-        this.radius = radius;
-        this.pos = pos;
-    }
-}
-class CSM {
-    constructor(mass, pos) {
-        this.mass = mass;
-        this.pos = pos;
-    }
-}
-function resizeCanvas(scene) {
-    // recalculate positions of objects in the scene
-    scene.resize(window.innerWidth, window.innerHeight);
-    // redraw scene
+function gameLoop(scene) {
+    // window.requestAnimationFrame(function(){gameLoop(scene)});
     scene.draw();
 }
 function main() {
@@ -47,11 +70,14 @@ function main() {
         // TODO: define the initial elements of the scene
         let scene = new Scene(canvas, ctx);
         // handle canvas sizing
-        window.addEventListener('resize', function () { resizeCanvas(scene); }, false);
-        window.addEventListener('orientationchange', function () { resizeCanvas(scene); }, false);
-        resizeCanvas(scene);
+        window.addEventListener('resize', function () { scene.resize(); }, false);
+        window.addEventListener('orientationchange', function () { scene.resize(); }, false);
+        scene.resize();
+        // begin loop
+        window.requestAnimationFrame(function () { gameLoop(scene); });
+    }
+    else {
+        // TODO: display message for browsers where canvas is not supported
     }
 }
-// start main function
-main();
 //# sourceMappingURL=index.js.map

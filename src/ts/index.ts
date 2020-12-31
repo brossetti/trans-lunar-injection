@@ -1,67 +1,95 @@
-interface SceneObject {
+class SceneObject {
+    protected pos: [number, number];
+    protected visible: boolean;
+
+    constructor(pos: [number, number], visible: boolean = true) {
+        this.pos = pos;
+        this.visible = visible;
+    }
+
+    public setVisibility(b: boolean) {
+        this.visible = b;
+    }
+
+    public isVisible(): boolean {
+        return this.visible;
+    }
+}
+
+class CelestialBody extends SceneObject{
+    public mass: number;
+    public radius: number;
+
+    constructor(pos: [number, number], mass: number, radius: number) {
+        super(pos);
+        this.mass = mass;
+        this.radius = radius;
+    }
+
+}
+
+class CSM extends SceneObject{
+    public mass: number;
+
+    constructor(pos: [number, number], mass: number) {
+        super(pos);
+        this.mass = mass;
+    }
 
 }
 
 class Scene {
     private canvas: HTMLCanvasElement;
     private ctx: CanvasRenderingContext2D;
-    // private objects: Array<SceneObject>;
+    private sceneObjects: Array<SceneObject>;
 
     constructor(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) {
         this.canvas = canvas;
         this.ctx = ctx;
+        this.sceneObjects = <SceneObject[]>[];
     }
 
     public addSceneObject(obj: SceneObject) {
-        // TODO: add scene object to list
-
+        this.sceneObjects.push(obj);
     }
 
-    public resize(width: number, height: number) {
-        this.canvas.width = width;
-        this.canvas.height = height;
+    public removeSceneObject(idx: number) {
+        this.sceneObjects.splice(idx,1);
+    }
 
+    public resize() {
+        // update canvas
+        this.canvas.width = window.innerWidth;
+        this.canvas.height = window.innerHeight;
+
+        // update scene object coordinates
         // TODO: update coordinates for all scene objects based on new width and height
+
+        // redraw
+        this.draw();
     }
 
     public draw() {
+        // clear canvas
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
         // TODO: draw every SceneObject in object list to canvas
+        // for (let obj of this.sceneObjects) {
+        //     if (obj.isVisible()) {
+
+        //     }
+        // }
+
         this.ctx.fillStyle = 'green';
-        this.ctx.fillRect(10,10,150,100);
+        this.ctx.fillRect(this.canvas.width/2+(Math.random()*10),this.canvas.height/2+(Math.random()*10),150,100);
     }
 
 
 }
 
-class CelestialBody {
-    public mass: number;
-    public radius: number;
-    public pos: [number, number];
+function gameLoop(scene: Scene) {
+    // window.requestAnimationFrame(function(){gameLoop(scene)});
 
-    constructor(mass: number, radius: number, pos: [number, number]) {
-        this.mass = mass;
-        this.radius = radius;
-        this.pos = pos;
-    }
-
-}
-
-class CSM {
-    public mass: number;
-    public pos: [number, number];
-
-    constructor(mass: number, pos: [number, number]) {
-        this.mass = mass;
-        this.pos = pos;
-    }
-
-}
-
-function resizeCanvas(scene: Scene) {
-    // recalculate positions of objects in the scene
-    scene.resize(window.innerWidth, window.innerHeight);
-
-    // redraw scene
     scene.draw();
 }
 
@@ -77,11 +105,14 @@ function main() {
         let scene = new Scene(canvas, ctx);
 
         // handle canvas sizing
-        window.addEventListener('resize', function(){resizeCanvas(scene)}, false);
-        window.addEventListener('orientationchange', function(){resizeCanvas(scene)}, false)
-        resizeCanvas(scene);
+        window.addEventListener('resize', function(){scene.resize()}, false);
+        window.addEventListener('orientationchange', function(){scene.resize()}, false)
+        scene.resize();
+
+        // begin loop
+        window.requestAnimationFrame(function(){gameLoop(scene)});
+
+    } else {
+        // TODO: display message for browsers where canvas is not supported
     }
 }
-
-// start main function
-main()

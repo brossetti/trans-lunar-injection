@@ -12,7 +12,7 @@
     "watch": "npm run watch:ts & npm run watch:sass",
     "watch:ts": "tsc --project tsconfig.watch.json",
     "watch:sass": "sass --watch src/scss:dist",
-    "serve": "npm run watch & live-server --watch=./dist,./index.html --no-browser"
+    "serve": "npm run watch & live-server --watch=./dist,./index.html"
   },
   "repository": {
     "type": "git",
