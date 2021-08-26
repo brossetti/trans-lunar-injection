@@ -1,0 +1,17 @@
+html, body { 
+	height: 100%;
+	width:100%;
+	margin: 0;
+	padding: 0;
+}  
+
+body {
+	background: rgb(135, 135, 138);
+	background: radial-gradient(at top left, rgba(62,65,95,1) 0%, rgba(46,44,59,1) 20%);
+	background-image: url("../img/stars.svg"),
+	radial-gradient(at top left, rgba(62,65,95,1) 0%, rgba(46,44,59,1) 20%);
+}
+
+#space {
+	position: absolute;
+}
