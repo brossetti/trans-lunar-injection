@@ -125,6 +125,9 @@ function updateCSMPosition() {
     }
     csm.tailX.unshift(csm.x);
     csm.tailY.unshift(csm.y);
+
+    // update angle
+    csm.angle = Math.atan2(csm.y - csm.tailY[1], csm.x - csm.tailX[1]);
 }
 
 function updateMetrics() {
@@ -167,7 +170,11 @@ function draw() {
 
     // draw CSM
     ctx.fillStyle = 'white';
-    ctx.fillRect(csm.x-5, csm.y-10, 10, 20);
+    ctx.save();
+    ctx.translate(csm.x,csm.y);
+    ctx.rotate(csm.angle);
+    ctx.fillRect(-10, -5, 20, 10);
+    ctx.restore();
 }
 
 // updates canvas when resized or orientation changed
@@ -203,6 +210,7 @@ function resize() {
     const csmR = earth.r + (ALT_CSM * scene.pxpkm);
     csm.x = earth.x;
     csm.y = earth.y - csmR;
+    csm.angle = Math.PI;
 
     // reset tail
     csm.tailX = [csm.x];
