@@ -2,14 +2,16 @@
 const TAU = 2 * Math.PI;
 const R_EARTH = 6371;               //volumetric mean radius of the Earth (km)
 const R_MOON = 1737.4;              //volumetric mean radius of the Moon (km)
-const ALT_CSM = 1850;                //initial altitude of the CSM above the Earth (km)
+const ALT_CSM = 1850;               //initial altitude of the CSM above the Earth (km)
 const DIST_EARTH_TO_MOON = 40000;   //distance from Earth to Moon relative to Earth's radius (not actual, compressed to fit screen)
 const GMm_EARTH = 1.14805e10;       //pre-computed GMm for force eq. F=GMm/r^2 (kg*km^3/s^2)
 const GMm_MOON = 1.4121e8;          //pre-computed GMm for force eq. F=GMm/r^2 (kg*km^3/s^2)
 const MASS_CSM = 28801;             //mass of the CSM (KG)
+const THRUST_MAIN = 91.225;         //thurst of CSM main engine (kg*km/s^2)
+const ATTITUDE_STEP = Math.PI/90;   //amount to offset CSM attitude on user input (radians) 
 const ELAPSED = 20;
 
-//===== Game Objects =====//
+//======= Objects =======//
 const scene = {
     originX: 0,
     originY: 0,
@@ -35,6 +37,8 @@ const csm = {
     x: 0,
     y: 0,
     angle: 0,  //angle relative to vertical (radians)
+    angleOffset: 0,
+    thrust: 0,
     vx: 0,     //velocity in x direction (km/s)
     vy: 0,     //velocity in y direction (km/s)
     Fx: 0,     //force in x direction (kg*km/s^2)
@@ -54,6 +58,16 @@ if (!canvas.getContext) {
 
 // get context
 let ctx = canvas.getContext('2d');
+
+// setup keyboard controls
+let rightPressed = false;   //rotate counter-clockwise
+let leftPressed = false;    //rotate clockwise
+let upPressed = false;      //main engine thrust
+let paused = false;         //start-pause
+
+document.addEventListener("keydown", keyDownHandler, false);
+document.addEventListener("keyup", keyUpHandler, false);
+
 
 // handle canvas sizing
 window.addEventListener('resize', resize);
@@ -96,26 +110,50 @@ function updateForces() {
     [Fx, Fy] = calcFxFy(r, theta, moon.GMm);
     csm.Fx += Fx;
     csm.Fy += Fy;
+
+    // thrust from user input
+    if (upPressed) {
+        csm.Fx += csm.thrust * Math.cos(csm.angle);
+        csm.Fy += csm.thrust * Math.sin(csm.angle);
+    }
+
+    // adjust attitude based on user input
+    if (rightPressed) {
+        csm.angleOffset += ATTITUDE_STEP;
+    } else if (leftPressed) {
+        csm.angleOffset -= ATTITUDE_STEP;
+    } 
 }
 
 // updates CSM position based on velocity and time elapsed
-function updateCSMPosition() {
+function updatePosition() {
+    // adjust velocity due to gravity
     csm.vx += (csm.Fx / MASS_CSM) * ELAPSED;
     csm.vy += (csm.Fy / MASS_CSM) * ELAPSED;
+
+    // update position
     csm.x += csm.vx * ELAPSED;
     csm.y += csm.vy * ELAPSED;
 
     // handle boundaries
     if (csm.x > canvas.width) {
         csm.x %= canvas.width;
+        csm.tailX = [csm.x];
+        csm.tailY = [csm.y];
     } else if (csm.x < 0) {
         csm.x = csm.x % canvas.width + canvas.width;
+        csm.tailX = [csm.x];
+        csm.tailY = [csm.y];
     }
 
     if (csm.y > canvas.height) {
         csm.y %= canvas.height;
+        csm.tailX = [csm.x];
+        csm.tailY = [csm.y];
     } else if (csm.y < 0) {
         csm.y = csm.y % canvas.height + canvas.height;
+        csm.tailX = [csm.x];
+        csm.tailY = [csm.y];
     }
 
     // add position to tail
@@ -127,9 +165,10 @@ function updateCSMPosition() {
     csm.tailY.unshift(csm.y);
 
     // update angle
-    csm.angle = Math.atan2(csm.y - csm.tailY[1], csm.x - csm.tailX[1]);
+    csm.angle = csm.angleOffset + Math.atan2(csm.y - csm.tailY[1], csm.x - csm.tailX[1]);
 }
 
+// updates on-screen metric display
 function updateMetrics() {
     document.getElementById("fx").innerText = csm.Fx.toFixed(4);
     document.getElementById("fy").innerText = csm.Fy.toFixed(4);
@@ -137,6 +176,7 @@ function updateMetrics() {
     document.getElementById("vy").innerText = csm.vy.toFixed(4);
 }
 
+// draws objects on canvas
 function draw() {
     // clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -162,8 +202,8 @@ function draw() {
     ctx.strokeStyle = tailGradient;
     ctx.beginPath();
     ctx.moveTo(csm.x, csm.y);
-    csm.tailX.forEach((coordX,ind) => {
-        const coordY = csm.tailY[ind];
+    csm.tailX.forEach((coordX,i) => {
+        const coordY = csm.tailY[i];
         ctx.lineTo(coordX,coordY);
     });
     ctx.stroke();
@@ -175,6 +215,51 @@ function draw() {
     ctx.rotate(csm.angle);
     ctx.fillRect(-10, -5, 20, 10);
     ctx.restore();
+}
+
+// handles control set on button press
+function keyDownHandler(e) {
+    switch (e.code) {
+        case "Right":
+        case "ArrowRight":
+        case "KeyD":
+            rightPressed = true;
+            break;
+        case "Left":
+        case "ArrowLeft":
+        case "KeyA":
+            leftPressed = true;
+            break;
+        case "Up":
+        case "ArrowUp":
+        case "KeyW":
+            upPressed = true;
+            break;
+        case "Space":
+            paused = !paused;
+            break;
+    }
+}
+
+// handles control reset on button release
+function keyUpHandler(e) {
+    switch (e.code) {
+        case "Right":
+        case "ArrowRight":
+        case "KeyD":
+            rightPressed = false;
+            break;
+        case "Left":
+        case "ArrowLeft":
+        case "KeyA":
+            leftPressed = false;
+            break;
+        case "Up":
+        case "ArrowUp":
+        case "KeyW":
+            upPressed = false;
+            break;
+    }
 }
 
 // updates canvas when resized or orientation changed
@@ -193,6 +278,9 @@ function resize() {
     // set GMm in pixels
     earth.GMm = GMm_EARTH * scene.pxpkm**3;
     moon.GMm = GMm_MOON * scene.pxpkm**3;
+
+    // set thrust in pixels
+    csm.thrust = THRUST_MAIN * scene.pxpkm;
 
     // determine new earth and moon positions
     const diag = Math.sqrt(canvas.width**2 + canvas.height**2);
@@ -226,8 +314,10 @@ function resize() {
 
 // runs the game
 function gameLoop() {
-    updateForces();
-    updateCSMPosition();
-    updateMetrics();
-    draw();
+    if (!paused) {
+        updateForces();
+        updatePosition();
+        updateMetrics();
+        draw();
+    }
 }
