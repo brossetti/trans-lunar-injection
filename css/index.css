@@ -15,3 +15,17 @@ body {
 #space {
 	position: absolute;
 }
+
+#metrics {
+	position: fixed;
+	bottom: 0;
+	left: 0;
+	padding-left: 1rem;
+	padding-bottom: 1rem;
+	color: white;
+	font-family: 'Courier New', Courier, monospace;
+}
+
+#metric, p {
+	margin: 0px;
+}
