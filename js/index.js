@@ -13,7 +13,8 @@ const ELAPSED = 20;
 const scene = {
     originX: 0,
     originY: 0,
-    pxpkm: 0
+    pxpkm: 0,
+    tailLength: 75
 }
 
 const earth = {
@@ -38,6 +39,8 @@ const csm = {
     vy: 0,     //velocity in y direction (km/s)
     Fx: 0,     //force in x direction (kg*km/s^2)
     Fy: 0,     //force in y direction (kg*km/s^2)
+    tailX: [],
+    tailY: []
 }
 
 //========= Main =========//
@@ -58,7 +61,6 @@ window.addEventListener('orientationchange', resize)
 resize();
 
 // begin game loop
-// window.requestAnimationFrame(gameLoop);
 setInterval(gameLoop,ELAPSED);
 
 //======= Functions ======//
@@ -103,7 +105,7 @@ function updateCSMPosition() {
     csm.x += csm.vx * ELAPSED;
     csm.y += csm.vy * ELAPSED;
 
-
+    // handle boundaries
     if (csm.x > canvas.width) {
         csm.x %= canvas.width;
     } else if (csm.x < 0) {
@@ -114,7 +116,15 @@ function updateCSMPosition() {
         csm.y %= canvas.height;
     } else if (csm.y < 0) {
         csm.y = csm.y % canvas.height + canvas.height;
-    }    
+    }
+
+    // add position to tail
+    if (csm.tailX.length > scene.tailLength) {
+        csm.tailX.pop();
+        csm.tailY.pop();
+    }
+    csm.tailX.unshift(csm.x);
+    csm.tailY.unshift(csm.y);
 }
 
 function updateMetrics() {
@@ -139,6 +149,21 @@ function draw() {
     ctx.beginPath();
     ctx.arc(moon.x, moon.y, moon.r, 0, TAU);
     ctx.fill();
+
+    // set tail gradient
+    let tailGradient = ctx.createLinearGradient(csm.x, csm.y, csm.tailX[csm.tailX.length - 1],  csm.tailY[csm.tailY.length - 1]);
+    tailGradient.addColorStop("0", "rgba(255,255,255,1)");
+    tailGradient.addColorStop("1.0", "rgba(255,255,255,0)");
+
+    // draw CSM tail
+    ctx.strokeStyle = tailGradient;
+    ctx.beginPath();
+    ctx.moveTo(csm.x, csm.y);
+    csm.tailX.forEach((coordX,ind) => {
+        const coordY = csm.tailY[ind];
+        ctx.lineTo(coordX,coordY);
+    });
+    ctx.stroke();
 
     // draw CSM
     ctx.fillStyle = 'white';
@@ -176,8 +201,12 @@ function resize() {
     moon.y = scene.originY - offsetY + moon.r;
 
     const csmR = earth.r + (ALT_CSM * scene.pxpkm);
-    csm.y = earth.y - csmR;
     csm.x = earth.x;
+    csm.y = earth.y - csmR;
+
+    // reset tail
+    csm.tailX = [csm.x];
+    csm.tailY = [csm.y];
 
     // set initial CSM velocity
     csm.vx = - Math.sqrt(earth.GMm / MASS_CSM / csmR);
