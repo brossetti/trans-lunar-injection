@@ -7,7 +7,7 @@ const DIST_EARTH_TO_MOON = 40000;   //distance from Earth to Moon relative to Ea
 const GMm_EARTH = 1.14805e10;       //pre-computed GMm for force eq. F=GMm/r^2 (kg*km^3/s^2)
 const GMm_MOON = 1.4121e8;          //pre-computed GMm for force eq. F=GMm/r^2 (kg*km^3/s^2)
 const MASS_CSM = 28801;             //mass of the CSM (KG)
-const THRUST_MAIN = 91.225;         //thurst of CSM main engine (kg*km/s^2)
+const THRUST_MAIN = 91.225;         //thrust of CSM main engine (kg*km/s^2)
 const ATTITUDE_STEP = Math.PI/90;   //amount to offset CSM attitude on user input (radians) 
 const ELAPSED = 20;
 
@@ -63,7 +63,7 @@ let ctx = canvas.getContext('2d');
 let rightPressed = false;   //rotate counter-clockwise
 let leftPressed = false;    //rotate clockwise
 let upPressed = false;      //main engine thrust
-let paused = false;         //start-pause
+let paused = false;         //start-pause game
 
 document.addEventListener("keydown", keyDownHandler, false);
 document.addEventListener("keyup", keyUpHandler, false);
@@ -237,6 +237,7 @@ function keyDownHandler(e) {
             break;
         case "Space":
             paused = !paused;
+            document.getElementById("banner").hidden = !paused;
             break;
     }
 }

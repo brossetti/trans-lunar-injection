@@ -16,6 +16,15 @@ body {
 	position: absolute;
 }
 
+#banner {
+	position: fixed;
+	top: 35%;
+	width: 100%;
+	color: white;
+	text-align: center;
+	font-family: 'Courier New', Courier, monospace; 
+}
+
 #metrics {
 	position: fixed;
 	bottom: 0;
