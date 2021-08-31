@@ -47,6 +47,12 @@ const csm = {
     tailY: []
 }
 
+//======== Assets ========//
+const imgEarth = new Image();
+const imgMoon = new Image();
+imgEarth.src = './img/earth.png';
+imgMoon.src = './img/moon.png';
+
 //========= Main =========//
 const canvas = document.getElementById('space');
 
@@ -58,6 +64,11 @@ if (!canvas.getContext) {
 
 // get context
 let ctx = canvas.getContext('2d');
+
+// turn off image smoothing
+ctx.imageSmoothingEnabled = false;
+ctx.mozImageSmoothingEnabled = false;
+ctx.webkitImageSmoothingEnabled = false;
 
 // setup keyboard controls
 let rightPressed = false;   //rotate counter-clockwise
@@ -182,16 +193,11 @@ function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     // draw earth
-    ctx.fillStyle = 'green';
-    ctx.beginPath();
-    ctx.arc(earth.x, earth.y, earth.r, 0, TAU);
-    ctx.fill();
+    ctx.drawImage(imgEarth, earth.x - earth.r, earth.y - earth.r, earth.r*2, earth.r*2);
 
     // draw moon
-    ctx.fillStyle = 'grey';
-    ctx.beginPath();
-    ctx.arc(moon.x, moon.y, moon.r, 0, TAU);
-    ctx.fill();
+    ctx.drawImage(imgMoon, moon.x - moon.r, moon.y - moon.r, moon.r*2, moon.r*2);
+
 
     // set tail gradient
     let tailGradient = ctx.createLinearGradient(csm.x, csm.y, csm.tailX[csm.tailX.length - 1],  csm.tailY[csm.tailY.length - 1]);
