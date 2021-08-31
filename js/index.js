@@ -2,6 +2,7 @@
 const TAU = 2 * Math.PI;
 const R_EARTH = 6371;               //volumetric mean radius of the Earth (km)
 const R_MOON = 1737.4;              //volumetric mean radius of the Moon (km)
+const R_CSM = 1000;                  //radius of CSM (not actual) (km)
 const ALT_CSM = 1850;               //initial altitude of the CSM above the Earth (km)
 const DIST_EARTH_TO_MOON = 40000;   //distance from Earth to Moon relative to Earth's radius (not actual, compressed to fit screen)
 const GMm_EARTH = 1.14805e10;       //pre-computed GMm for force eq. F=GMm/r^2 (kg*km^3/s^2)
@@ -36,6 +37,7 @@ const moon = {
 const csm = {
     x: 0,
     y: 0,
+    r: 0,
     angle: 0,  //angle relative to vertical (radians)
     angleOffset: 0,
     thrust: 0,
@@ -50,8 +52,10 @@ const csm = {
 //======== Assets ========//
 const imgEarth = new Image();
 const imgMoon = new Image();
+const imgCSM = new Image();
 imgEarth.src = './img/earth.png';
 imgMoon.src = './img/moon.png';
+imgCSM.src = './img/csm.png';
 
 //========= Main =========//
 const canvas = document.getElementById('space');
@@ -198,7 +202,6 @@ function draw() {
     // draw moon
     ctx.drawImage(imgMoon, moon.x - moon.r, moon.y - moon.r, moon.r*2, moon.r*2);
 
-
     // set tail gradient
     let tailGradient = ctx.createLinearGradient(csm.x, csm.y, csm.tailX[csm.tailX.length - 1],  csm.tailY[csm.tailY.length - 1]);
     tailGradient.addColorStop("0", "rgba(255,255,255,1)");
@@ -215,11 +218,10 @@ function draw() {
     ctx.stroke();
 
     // draw CSM
-    ctx.fillStyle = 'white';
     ctx.save();
     ctx.translate(csm.x,csm.y);
     ctx.rotate(csm.angle);
-    ctx.fillRect(-10, -5, 20, 10);
+    ctx.drawImage(imgCSM, -csm.r, -csm.r, csm.r*2, csm.r*2);
     ctx.restore();
 }
 
@@ -281,6 +283,7 @@ function resize() {
     scene.pxpkm = Math.min(canvas.width, canvas.height) / 45000;
     earth.r = R_EARTH * scene.pxpkm;
     moon.r = R_MOON * scene.pxpkm;
+    csm.r = R_CSM * scene.pxpkm;
 
     // set GMm in pixels
     earth.GMm = GMm_EARTH * scene.pxpkm**3;
