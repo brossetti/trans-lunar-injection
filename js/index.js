@@ -2,7 +2,8 @@
 const TAU = 2 * Math.PI;
 const R_EARTH = 6371;               //volumetric mean radius of the Earth (km)
 const R_MOON = 1737.4;              //volumetric mean radius of the Moon (km)
-const R_CSM = 1000;                  //radius of CSM (not actual) (km)
+const W_CSM = 1600;                 //width of CSM (not actual) (km)
+const ASPECT_CSM = 0.5;               //aspect ratio of CSM width/height
 const ALT_CSM = 1850;               //initial altitude of the CSM above the Earth (km)
 const DIST_EARTH_TO_MOON = 40000;   //distance from Earth to Moon relative to Earth's radius (not actual, compressed to fit screen)
 const GMm_EARTH = 1.14805e10;       //pre-computed GMm for force eq. F=GMm/r^2 (kg*km^3/s^2)
@@ -37,7 +38,8 @@ const moon = {
 const csm = {
     x: 0,
     y: 0,
-    r: 0,
+    w: 0,
+    h: 0,
     angle: 0,  //angle relative to vertical (radians)
     angleOffset: 0,
     thrust: 0,
@@ -53,9 +55,15 @@ const csm = {
 const imgEarth = new Image();
 const imgMoon = new Image();
 const imgCSM = new Image();
+const imgCSMEngine = new Image();
+const imgCSMRCSCW = new Image();
+const imgCSMRCSCCW = new Image();
 imgEarth.src = './img/earth.png';
 imgMoon.src = './img/moon.png';
 imgCSM.src = './img/csm.png';
+imgCSMEngine.src = './img/csm-engine.png';
+imgCSMRCSCW.src = './img/csm-rcs-cw.png';
+imgCSMRCSCCW.src = './img/csm-rcs-ccw.png';
 
 //========= Main =========//
 const canvas = document.getElementById('space');
@@ -187,8 +195,8 @@ function updatePosition() {
 function updateMetrics() {
     document.getElementById("fx").innerText = csm.Fx.toFixed(4);
     document.getElementById("fy").innerText = csm.Fy.toFixed(4);
-    document.getElementById("vx").innerText = csm.vx.toFixed(4);
-    document.getElementById("vy").innerText = csm.vy.toFixed(4);
+    document.getElementById("vx").innerText = (csm.vx / scene.pxpkm).toFixed(4);
+    document.getElementById("vy").innerText = (csm.vy / scene.pxpkm).toFixed(4);
 }
 
 // draws objects on canvas
@@ -221,7 +229,16 @@ function draw() {
     ctx.save();
     ctx.translate(csm.x,csm.y);
     ctx.rotate(csm.angle);
-    ctx.drawImage(imgCSM, -csm.r, -csm.r, csm.r*2, csm.r*2);
+    if (upPressed) {
+        ctx.drawImage(imgCSMEngine, -csm.w/2, -csm.h/2, csm.w, csm.h);
+    }
+    if (leftPressed) {
+        ctx.drawImage(imgCSMRCSCCW, -csm.w/2, -csm.h/2, csm.w, csm.h);
+    }
+    if (rightPressed) {
+        ctx.drawImage(imgCSMRCSCW, -csm.w/2, -csm.h/2, csm.w, csm.h);
+    }
+    ctx.drawImage(imgCSM, -csm.w/2, -csm.h/2, csm.w, csm.h);
     ctx.restore();
 }
 
@@ -283,7 +300,8 @@ function resize() {
     scene.pxpkm = Math.min(canvas.width, canvas.height) / 45000;
     earth.r = R_EARTH * scene.pxpkm;
     moon.r = R_MOON * scene.pxpkm;
-    csm.r = R_CSM * scene.pxpkm;
+    csm.w = W_CSM * scene.pxpkm;
+    csm.h = csm.w * ASPECT_CSM;
 
     // set GMm in pixels
     earth.GMm = GMm_EARTH * scene.pxpkm**3;
