@@ -78,11 +78,6 @@ if (!canvas.getContext) {
 // get context
 let ctx = canvas.getContext('2d');
 
-// turn off image smoothing
-ctx.imageSmoothingEnabled = false;
-ctx.mozImageSmoothingEnabled = false;
-ctx.webkitImageSmoothingEnabled = false;
-
 // setup keyboard controls
 let rightPressed = false;   //rotate counter-clockwise
 let leftPressed = false;    //rotate clockwise
@@ -305,6 +300,14 @@ function resize() {
     canvas.height = window.innerHeight;
     scene.originX = canvas.width/2;
     scene.originY = canvas.height/2;
+
+    // turn up image smoothing
+    ctx.imageSmoothingEnabled = false;
+    ctx.webkitImageSmoothingEnabled = true;
+    ctx.mozImageSmoothingEnabled = true;
+    ctx.msImageSmoothingEnabled = true;
+    ctx.oImageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
 
     // set km/px and calculate size of objects
     scene.pxpkm = Math.min(canvas.width, canvas.height) / 45000;
