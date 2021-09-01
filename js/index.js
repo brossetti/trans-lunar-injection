@@ -2,10 +2,10 @@
 const TAU = 2 * Math.PI;
 const R_EARTH = 6371;               //volumetric mean radius of the Earth (km)
 const R_MOON = 1737.4;              //volumetric mean radius of the Moon (km)
-const W_CSM = 1600;                 //width of CSM (not actual) (km)
-const ASPECT_CSM = 0.5;               //aspect ratio of CSM width/height
+const W_CSM = 2000;                 //width of CSM (not actual) (km)
+const ASPECT_CSM = 0.5;             //aspect ratio of CSM width/height
 const ALT_CSM = 1850;               //initial altitude of the CSM above the Earth (km)
-const DIST_EARTH_TO_MOON = 40000;   //distance from Earth to Moon relative to Earth's radius (not actual, compressed to fit screen)
+const DIST_EARTH_TO_MOON = 45000;   //distance from Earth to Moon relative to Earth's radius (not actual, compressed to fit screen)
 const GMm_EARTH = 1.14805e10;       //pre-computed GMm for force eq. F=GMm/r^2 (kg*km^3/s^2)
 const GMm_MOON = 1.4121e8;          //pre-computed GMm for force eq. F=GMm/r^2 (kg*km^3/s^2)
 const MASS_CSM = 28801;             //mass of the CSM (KG)
@@ -17,38 +17,39 @@ const ELAPSED = 20;
 const scene = {
     originX: 0,
     originY: 0,
-    pxpkm: 0,
-    tailLength: 75
+    pxpkm: 0,       //conversion from km to pixels 
+    tailLength: 75  //max number or previous coordinate to use for tail
 }
 
 const earth = {
     x: 0,
     y: 0,
-    r: 0,
-    GMm: 0
+    r: 0,           //radius (px)
+    GMm: 0          //GMm for force eq. F=GMm/r^2 (kg*px^3/s^2)
 }
 
 const moon = {
     x: 0,
     y: 0,
-    r: 0,
-    GMm: 0
+    r: 0,           //radius (px)
+    GMm: 0          //GMm for force eq. F=GMm/r^2 (kg*px^3/s^2)
 }
 
 const csm = {
     x: 0,
     y: 0,
-    w: 0,
-    h: 0,
-    angle: 0,  //angle relative to vertical (radians)
-    angleOffset: 0,
-    thrust: 0,
-    vx: 0,     //velocity in x direction (km/s)
-    vy: 0,     //velocity in y direction (km/s)
-    Fx: 0,     //force in x direction (kg*km/s^2)
-    Fy: 0,     //force in y direction (kg*km/s^2)
-    tailX: [],
-    tailY: []
+    w: 0,           //width of CSM (px)
+    h: 0,           //height of CSM (px)
+    angle: 0,       //angle relative to vertical (radians)
+    angleOffset: 0, //offset angle from RCS (radians)
+    thrust: 0,      //trust of CSM main engine (kg*px/s^s)
+    vx: 0,          //velocity in x direction (px/s)
+    vy: 0,          //velocity in y direction (px/s)
+    v: 0,           //velocity (km/h)
+    Fx: 0,          //force in x direction (kg*px/s^2)
+    Fy: 0,          //force in y direction (kg*px/s^2)
+    tailX: [],      //array of tail x coordinates
+    tailY: []       //array of tail y coordinates
 }
 
 //======== Assets ========//
@@ -153,6 +154,7 @@ function updatePosition() {
     // adjust velocity due to gravity
     csm.vx += (csm.Fx / MASS_CSM) * ELAPSED;
     csm.vy += (csm.Fy / MASS_CSM) * ELAPSED;
+    csm.v = Math.hypot(csm.vx, csm.vy) * 3600 / scene.pxpkm;
 
     // update position
     csm.x += csm.vx * ELAPSED;
@@ -188,15 +190,23 @@ function updatePosition() {
     csm.tailY.unshift(csm.y);
 
     // update angle
+    if (csm.v < 30) {
+        csm.angleOffset = 0;
+    }
     csm.angle = csm.angleOffset + Math.atan2(csm.y - csm.tailY[1], csm.x - csm.tailX[1]);
 }
 
 // updates on-screen metric display
 function updateMetrics() {
-    document.getElementById("fx").innerText = csm.Fx.toFixed(4);
-    document.getElementById("fy").innerText = csm.Fy.toFixed(4);
-    document.getElementById("vx").innerText = (csm.vx / scene.pxpkm).toFixed(4);
-    document.getElementById("vy").innerText = (csm.vy / scene.pxpkm).toFixed(4);
+    let de = (Math.hypot(earth.x - csm.x, earth.y - csm.y) - earth.r) / scene.pxpkm;
+    let dm = (Math.hypot(moon.x - csm.x, moon.y - csm.y) - moon.r) / scene.pxpkm;
+    let fx = csm.Fx / scene.pxpkm;
+    let fy = csm.Fy / scene.pxpkm;
+    document.getElementById("de").innerText = de.toFixed(0);
+    document.getElementById("dm").innerText = dm.toFixed(0);
+    document.getElementById("v").innerText = csm.v.toFixed(0);
+    document.getElementById("fx").innerText = fx.toFixed(0);
+    document.getElementById("fy").innerText = fy.toFixed(0);
 }
 
 // draws objects on canvas
@@ -332,7 +342,7 @@ function resize() {
     csm.tailX = [csm.x];
     csm.tailY = [csm.y];
 
-    // set initial CSM velocity
+    // set initial CSM velocity as v=sqrt(GM/r)
     csm.vx = - Math.sqrt(earth.GMm / MASS_CSM / csmR);
     csm.vy = 0; 
 
