@@ -302,7 +302,7 @@ function resize() {
     scene.originY = canvas.height/2;
 
     // turn up image smoothing
-    ctx.imageSmoothingEnabled = false;
+    ctx.imageSmoothingEnabled = true;
     ctx.webkitImageSmoothingEnabled = true;
     ctx.mozImageSmoothingEnabled = true;
     ctx.msImageSmoothingEnabled = true;
